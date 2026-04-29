@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Persona Chatbot</title>
+</head>
+<body>
+
+<h2 id="title">Anshuman Singh</h2>
+
+<button onclick="switchPersona('anshuman')">Anshuman</button>
+<button onclick="switchPersona('abhimanyu')">Abhimanyu</button>
+<button onclick="switchPersona('kshitij')">Kshitij</button>
+
+<div id="chat" style="height:300px; overflow:auto; border:1px solid black;"></div>
+
+<input id="input" placeholder="Ask something..." />
+<button onclick="send()">Send</button>
+
+<p id="loading"></p>
+
+<script>
+let persona = "anshuman";
+
+function switchPersona(p) {
+  persona = p;
+  document.getElementById("chat").innerHTML = "";
+  document.getElementById("title").innerText = p;
+}
+
+async function send() {
+  const input = document.getElementById("input");
+  const message = input.value;
+
+  if (!message) return;
+
+  const chat = document.getElementById("chat");
+  chat.innerHTML += "<p><b>You:</b> " + message + "</p>";
+
+  input.value = "";
+  document.getElementById("loading").innerText = "Typing...";
+
+  try {
+    const res = await fetch("/api/chat", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({ message, persona })
+    });
+
+    const data = await res.json();
+
+    chat.innerHTML += "<p><b>Bot:</b> " + data.reply + "</p>";
+  } catch {
+    chat.innerHTML += "<p><b>Bot:</b> Error occurred</p>";
+  }
+
+  document.getElementById("loading").innerText = "";
+}
+</script>
+
+</body>
+</html>
