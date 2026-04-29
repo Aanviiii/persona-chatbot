@@ -11,22 +11,41 @@ export default async function handler(req, res) {
 
         const { message, persona } = req.body;
 
+        console.log("Incoming:", message, persona);
+
         const model = genAI.getGenerativeModel({
-            model: "gemini-1.5-flash"
+            model: "gemini-2.0-flash"
         });
 
-        const prompt = personas[persona].prompt;
+        const prompt = personas[persona]?.prompt;
 
-        const result = await model.generateContent([
-            prompt,
-            `User: ${message}`
-        ]);
+        if (!prompt) {
+            return res.status(400).json({ error: "Invalid persona" });
+        }
 
-        const reply = result.response.text();
+        const result = await model.generateContent(
+            prompt + "\nUser: " + message
+        );
 
-        res.status(200).json({ reply });
+        console.log("RAW RESULT:", JSON.stringify(result, null, 2));
+
+        let reply = "No response";
+
+        try {
+            reply = result.response.text();
+        } catch (e) {
+            console.log("text() failed, trying fallback...");
+            reply =
+                result?.response?.candidates?.[0]?.content?.parts?.[0]?.text ||
+                "Still no response";
+        }
+
+        console.log("FINAL REPLY:", reply);
+
+        return res.status(200).json({ reply });
 
     } catch (err) {
-        res.status(500).json({ error: "Something went wrong" });
+        console.error("ERROR:", err);
+        return res.status(500).json({ error: "Server error" });
     }
 }
