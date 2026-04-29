@@ -2,21 +2,106 @@
 <html>
 <head>
   <title>Persona Chatbot</title>
+  <style>
+    body {
+      font-family: Arial;
+      background: #0f172a;
+      color: white;
+      display: flex;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 500px;
+    }
+
+    h2 {
+      text-align: center;
+    }
+
+    .buttons button {
+      margin: 5px;
+      padding: 8px;
+      border: none;
+      cursor: pointer;
+      background: #1e293b;
+      color: white;
+      border-radius: 5px;
+    }
+
+    .chat {
+      background: #1e293b;
+      height: 350px;
+      overflow-y: auto;
+      padding: 10px;
+      border-radius: 10px;
+      margin: 10px 0;
+    }
+
+    .msg {
+      margin: 8px 0;
+    }
+
+    .user {
+      text-align: right;
+      color: #38bdf8;
+    }
+
+    .bot {
+      text-align: left;
+      color: #22c55e;
+    }
+
+    .input-area {
+      display: flex;
+      gap: 5px;
+    }
+
+    input {
+      flex: 1;
+      padding: 10px;
+      border-radius: 5px;
+      border: none;
+    }
+
+    button.send {
+      padding: 10px;
+      background: #22c55e;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+
+    .typing {
+      font-size: 12px;
+      opacity: 0.7;
+    }
+  </style>
 </head>
+
 <body>
+<div class="container">
 
-<h2 id="title">Anshuman Singh</h2>
+  <h2 id="title">Anshuman Singh</h2>
 
-<button onclick="switchPersona('anshuman')">Anshuman</button>
-<button onclick="switchPersona('abhimanyu')">Abhimanyu</button>
-<button onclick="switchPersona('kshitij')">Kshitij</button>
+  <div class="buttons">
+    <button onclick="switchPersona('anshuman')">Anshuman</button>
+    <button onclick="switchPersona('abhimanyu')">Abhimanyu</button>
+    <button onclick="switchPersona('kshitij')">Kshitij</button>
+  </div>
 
-<div id="chat" style="height:300px; overflow:auto; border:1px solid black;"></div>
+  <div id="chat" class="chat"></div>
 
-<input id="input" placeholder="Ask something..." />
-<button onclick="send()">Send</button>
+  <p id="typing" class="typing"></p>
 
-<p id="loading"></p>
+  <div class="input-area">
+    <input id="input" placeholder="Ask something..." />
+    <button class="send" onclick="send()">Send</button>
+  </div>
+
+</div>
 
 <script>
 let persona = "anshuman";
@@ -30,32 +115,27 @@ function switchPersona(p) {
 async function send() {
   const input = document.getElementById("input");
   const message = input.value;
-
   if (!message) return;
 
   const chat = document.getElementById("chat");
-  chat.innerHTML += "<p><b>You:</b> " + message + "</p>";
 
+  chat.innerHTML += `<div class="msg user"><b>You:</b> ${message}</div>`;
   input.value = "";
-  document.getElementById("loading").innerText = "Typing...";
+  document.getElementById("typing").innerText = "Typing...";
 
-  try {
-    const res = await fetch("/api/chat", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({ message, persona })
-    });
+  const res = await fetch("/api/chat", {
+    method: "POST",
+    headers: {"Content-Type": "application/json"},
+    body: JSON.stringify({ message, persona })
+  });
 
-    const data = await res.json();
+  const data = await res.json();
 
-    chat.innerHTML += "<p><b>Bot:</b> " + data.reply + "</p>";
-  } catch {
-    chat.innerHTML += "<p><b>Bot:</b> Error occurred</p>";
-  }
+  document.getElementById("typing").innerText = "";
 
-  document.getElementById("loading").innerText = "";
+  chat.innerHTML += `<div class="msg bot"><b>Bot:</b> ${data.reply}</div>`;
+
+  chat.scrollTop = chat.scrollHeight;
 }
 </script>
 
